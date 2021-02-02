@@ -25,18 +25,29 @@ import time
 import weakref
 import uuid
 
+from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
-from cobbler.cobbler_collections import files, systems, mgmtclasses, distros, profiles, repos, packages, images
 from cobbler import settings
 from cobbler import serializer
+from cobbler.cobbler_collections.collection import Collection
+from cobbler.cobbler_collections.distros import Distros
+from cobbler.cobbler_collections.files import Files
+from cobbler.cobbler_collections.images import Images
+from cobbler.cobbler_collections.mgmtclasses import Mgmtclasses
+from cobbler.cobbler_collections.packages import Packages
+from cobbler.cobbler_collections.profiles import Profiles
+from cobbler.cobbler_collections.repos import Repos
+from cobbler.cobbler_collections.systems import Systems
+from cobbler.items.item import Item
+from cobbler.settings import Settings
 
 
-class CollectionManager(object):
+class CollectionManager:
 
     has_loaded = False
     __shared_state = {}
 
-    def __init__(self, api):
+    def __init__(self, api: CobblerAPI):
         """
         Constructor. Manages a definitive copy of all data cobbler_collections with weakrefs
         pointing back into the class so they can understand each other's contents
@@ -45,7 +56,7 @@ class CollectionManager(object):
         if not CollectionManager.has_loaded:
             self.__load(api)
 
-    def __load(self, api):
+    def __load(self, api: CobblerAPI):
         """
         Load all collections from the disk into Cobbler.
 
@@ -56,14 +67,14 @@ class CollectionManager(object):
         self.init_time = time.time()
         self.current_id = 0
         self.api = api
-        self._distros = distros.Distros(weakref.proxy(self))
-        self._repos = repos.Repos(weakref.proxy(self))
-        self._profiles = profiles.Profiles(weakref.proxy(self))
-        self._systems = systems.Systems(weakref.proxy(self))
-        self._images = images.Images(weakref.proxy(self))
-        self._mgmtclasses = mgmtclasses.Mgmtclasses(weakref.proxy(self))
-        self._packages = packages.Packages(weakref.proxy(self))
-        self._files = files.Files(weakref.proxy(self))
+        self._distros = Distros(weakref.proxy(self))
+        self._repos = Repos(weakref.proxy(self))
+        self._profiles = Profiles(weakref.proxy(self))
+        self._systems = Systems(weakref.proxy(self))
+        self._images = Images(weakref.proxy(self))
+        self._mgmtclasses = Mgmtclasses(weakref.proxy(self))
+        self._packages = Packages(weakref.proxy(self))
+        self._files = Files(weakref.proxy(self))
         self._settings = settings.Settings()         # not a true collection
 
     def generate_uid(self):
@@ -75,55 +86,55 @@ class CollectionManager(object):
         """
         return uuid.uuid4().hex
 
-    def distros(self):
+    def distros(self) -> Distros:
         """
         Return the definitive copy of the Distros collection
         """
         return self._distros
 
-    def profiles(self):
+    def profiles(self) -> Profiles:
         """
         Return the definitive copy of the Profiles collection
         """
         return self._profiles
 
-    def systems(self):
+    def systems(self) -> Systems:
         """
         Return the definitive copy of the Systems collection
         """
         return self._systems
 
-    def settings(self):
+    def settings(self) -> Settings:
         """
         Return the definitive copy of the application settings
         """
         return self._settings
 
-    def repos(self):
+    def repos(self) -> Repos:
         """
         Return the definitive copy of the Repos collection
         """
         return self._repos
 
-    def images(self):
+    def images(self) -> Images:
         """
         Return the definitive copy of the Images collection
         """
         return self._images
 
-    def mgmtclasses(self):
+    def mgmtclasses(self) -> Mgmtclasses:
         """
         Return the definitive copy of the Mgmtclasses collection
         """
         return self._mgmtclasses
 
-    def packages(self):
+    def packages(self) -> Packages:
         """
         Return the definitive copy of the Packages collection
         """
         return self._packages
 
-    def files(self):
+    def files(self) -> Files:
         """
         Return the definitive copy of the Files collection
         """
@@ -143,7 +154,7 @@ class CollectionManager(object):
         serializer.serialize(self._packages)
         serializer.serialize(self._files)
 
-    def serialize_item(self, collection, item):
+    def serialize_item(self, collection: Collection, item: Item):
         """
         Save a collection item to disk
 
@@ -153,7 +164,7 @@ class CollectionManager(object):
 
         return serializer.serialize_item(collection, item)
 
-    def serialize_delete(self, collection, item):
+    def serialize_delete(self, collection: Collection, item: Item):
         """
         Delete a collection item from disk
 
@@ -186,7 +197,7 @@ class CollectionManager(object):
             except Exception as e:
                 raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf" % (collection.collection_type(), e))
 
-    def get_items(self, collection_type):
+    def get_items(self, collection_type: str):
         """
         Get a full collection of a single type.
 
