@@ -24,23 +24,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import re
 import Cheetah
+import Cheetah.Template as cheetah_template
 import functools
 import os
 import os.path
 import pprint
 
-jinja2_available = False
+from cobbler.cexceptions import CX
+from cobbler import clogger, utils
+from cobbler.template_api import CobblerTemplate
+
 try:
     import jinja2
-    jinja2_available = True
-except:
-    """ FIXME: log a message here """
-    pass
 
-from .cexceptions import CX
-from . import clogger
-from .template_api import Template
-from . import utils
+    jinja2_available = True
+except ModuleNotFoundError:
+    # FIXME: log a message here
+    jinja2_available = False
+    pass
 
 major, minor, release = Cheetah.Version.split('.')[0:3]
 fix_cheetah_class = (int(major), int(minor), int(release)) >= (2, 4, 2)
@@ -106,7 +107,7 @@ class Templar:
         lines = raw_data.split('\n')
 
         if not template_type:
-            # Assume we're using the default template type, if set in the settinigs file or use cheetah as the last
+            # Assume we're using the default template type, if set in the settings file or use cheetah as the last
             # resort
             if self.settings and self.settings.default_template_type:
                 template_type = self.settings.default_template_type
@@ -154,9 +155,8 @@ class Templar:
         # if requested, write the data out to a file
         if out_path is not None:
             utils.mkdir(os.path.dirname(out_path))
-            fd = open(out_path, "w+")
-            fd.write(data_out)
-            fd.close()
+            with open(out_path, "w+") as file_descriptor:
+                file_descriptor.write(data_out)
 
         return data_out
 
@@ -181,12 +181,12 @@ class Templar:
         if "tree" in search_table and search_table["tree"].startswith("nfs://"):
             for line in raw_data.split("\n"):
                 if line.find("--url") != -1 and line.find("url ") != -1:
-                    rest = search_table["tree"][6:]        # strip off "nfs://" part
+                    rest = search_table["tree"][6:]  # strip off "nfs://" part
                     try:
-                        (server, dir) = rest.split(":", 2)
-                    except:
-                        raise CX("Invalid syntax for NFS path given during import: %s" % search_table["tree"])
-                    line = "nfs --server %s --dir %s" % (server, dir)
+                        (server, directory) = rest.split(":", 2)
+                    except Exception as e:
+                        raise CX("Invalid syntax for NFS path given during import: %s" % search_table["tree"]) from e
+                    line = "nfs --server %s --dir %s" % (server, directory)
                     # But put the URL part back in so koan can still see what the original value was
                     line += "\n" + "#url --url=%s" % search_table["tree"]
                 newdata += line + "\n"
@@ -206,10 +206,10 @@ class Templar:
         })
 
         # Now do full templating scan, where we will also templatify the snippet insertions
-        t = Template().compile(
+        t = cheetah_template.Template().compile(
             source=raw_data,
             compilerSettings={'useStackFrame': False},
-            baseclass=Template.compile(file=CHEETAH_MACROS_FILE)
+            baseclass=CobblerTemplate.compile(file=CHEETAH_MACROS_FILE)
         )
 
         if fix_cheetah_class:
@@ -241,7 +241,9 @@ class Templar:
 
         try:
             if self.settings and self.settings.jinja2_includedir:
-                template = jinja2.Environment(loader=jinja2.FileSystemLoader(self.settings.jinja2_includedir)).from_string(raw_data)
+                template = jinja2 \
+                    .Environment(loader=jinja2.FileSystemLoader(self.settings.jinja2_includedir)) \
+                    .from_string(raw_data)
             else:
                 template = jinja2.Template(raw_data)
             data_out = template.render(search_table)

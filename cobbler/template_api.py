@@ -29,12 +29,11 @@ import re
 from cobbler.cexceptions import FileNotFoundException
 from cobbler import utils
 
-# This class is defined using the Cheetah language. Using the 'compile' function
-# we can compile the source directly into a Python class. This class will allow
-# us to define the cheetah builtins.
+# This class is defined using the Cheetah language. Using the 'compile' function we can compile the source directly into
+# a Python class. This class will allow us to define the cheetah builtins.
 
 
-class Template(cheetah_template.Template):
+class CobblerTemplate(cheetah_template.Template):
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include both types (cheetah and pure python) of
@@ -47,12 +46,10 @@ class Template(cheetah_template.Template):
 
         :param kwargs: These arguments get passed to the super constructor of this class.
         """
-        self.BuiltinTemplate = Template.compile(source="\n".join([
-
-            # This part (see 'Template' below
-            # for the other part) handles the actual inclusion of the file contents. We
-            # still need to make the snippet's namespace (searchList) available to the
-            # template calling SNIPPET (done in the other part).
+        self.BuiltinTemplate = CobblerTemplate.compile(source="\n".join([
+            # This part (see 'Template' below for the other part) handles the actual inclusion of the file contents. We
+            # still need to make the snippet's namespace (searchList) available to the template calling SNIPPET (done in
+            # the other part).
 
             # Moved the other functions into /etc/cobbler/cheetah_macros
             # Left SNIPPET here since it is very important.
@@ -79,7 +76,7 @@ class Template(cheetah_template.Template):
             "#end if",
             "#end def",
         ]) + "\n")
-        super(Template, self).__init__(**kwargs)
+        super(CobblerTemplate, self).__init__(**kwargs)
 
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to compile the template into a class. This
     # is probably a kludge, but it add a baseclass argument to the standard compile (see Cheetah's compile docstring)
@@ -124,10 +121,10 @@ class Template(cheetah_template.Template):
 
         # Instruct Cheetah to use this class as the base for all cheetah templates
         if 'baseclass' not in kwargs:
-            kwargs['baseclass'] = Template
+            kwargs['baseclass'] = CobblerTemplate
 
         # Now let Cheetah do the actual compilation
-        return super(Template, cls).compile(*args, **kwargs)
+        return super(CobblerTemplate, cls).compile(*args, **kwargs)
 
     def read_snippet(self, file):
         """
