@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import re
+from typing import Optional
+from typing.io import TextIO
+
 import Cheetah
 import Cheetah.Template as cheetah_template
 import functools
@@ -32,6 +35,7 @@ import pprint
 
 from cobbler.cexceptions import CX
 from cobbler import clogger, utils
+from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.template_api import CobblerTemplate
 
 try:
@@ -51,7 +55,7 @@ CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
 class Templar:
 
-    def __init__(self, collection_mgr, logger=None):
+    def __init__(self, collection_mgr: CollectionManager, logger=None):
         """
         Constructor
 
@@ -71,7 +75,7 @@ class Templar:
             logger = clogger.Logger()
         self.logger = logger
 
-    def check_for_invalid_imports(self, data):
+    def check_for_invalid_imports(self, data: str):
         """
         Ensure that Cheetah code is not importing Python modules that may allow for advanced privileges by ensuring we
         whitelist the imports that we allow.
@@ -85,7 +89,8 @@ class Templar:
                 if self.settings and rest not in self.settings.cheetah_import_whitelist:
                     raise CX("potentially insecure import in template: %s" % rest)
 
-    def render(self, data_input, search_table, out_path, subject=None, template_type=None):
+    def render(self, data_input: (TextIO, str), search_table: dict, out_path: Optional[str], subject=None,
+               template_type="default"):
         """
         Render data_input back into a file.
 
@@ -94,8 +99,7 @@ class Templar:
                              (though results are always returned)
         :param out_path: Optional parameter which (if present), represents the target path to write the result into.
         :param subject: is a profile or system object, if available (for snippet eval)
-        :param template_type: May currently be "cheetah" or "jinja2".
-        :type template_type: str
+        :param template_type: May currently be "cheetah" or "jinja2". "default" looks in the settings.
         :return: The rendered template.
         :rtype: str
         """
@@ -106,9 +110,7 @@ class Templar:
             raw_data = data_input
         lines = raw_data.split('\n')
 
-        if not template_type:
-            # Assume we're using the default template type, if set in the settings file or use cheetah as the last
-            # resort
+        if template_type == "default":
             if self.settings and self.settings.default_template_type:
                 template_type = self.settings.default_template_type
             else:

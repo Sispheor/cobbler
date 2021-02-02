@@ -21,6 +21,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from typing import Optional
 
 import Cheetah.Template as cheetah_template
 import os.path
@@ -28,6 +29,7 @@ import re
 
 from cobbler.cexceptions import FileNotFoundException
 from cobbler import utils
+
 
 # This class is defined using the Cheetah language. Using the 'compile' function we can compile the source directly into
 # a Python class. This class will allow us to define the cheetah builtins.
@@ -95,6 +97,7 @@ class CobblerTemplate(cheetah_template.Template):
         :return: The compiled template.
         :rtype: bytes
         """
+
         def replacer(match):
             return "$SNIPPET('%s')" % match.group(1)
 
@@ -109,11 +112,12 @@ class CobblerTemplate(cheetah_template.Template):
                             source = "#errorCatcher Echo\n" + f.read()
                     else:
                         source = "# Unable to read %s\n" % file
-                file = None     # Stop Cheetah from throwing a fit.
+                file = None  # Stop Cheetah from throwing a fit.
 
             rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-\/\.]+)')
             results = rx.sub(replacer, source)
             return results, file
+
         preprocessors = [preprocess]
         if 'preprocessors' in kwargs:
             preprocessors.extend(kwargs['preprocessors'])
@@ -126,32 +130,30 @@ class CobblerTemplate(cheetah_template.Template):
         # Now let Cheetah do the actual compilation
         return super(CobblerTemplate, cls).compile(*args, **kwargs)
 
-    def read_snippet(self, file):
+    def read_snippet(self, file: str) -> Optional[str]:
         """
         Locate the appropriate snippet for the current system and profile and read it's contents.
 
         This file could be located in a remote location.
 
         This will first check for a per-system snippet, a per-profile snippet, a distro snippet, and a general snippet.
-        If no snippet is located, it returns None.
 
-        :param file: The file to read-
+        :param file: The name of the file to read. Depending on the context this gets expanded automatically.
         :return: None (if the snippet file was not found) or the string with the read snippet.
-        :rtype: str
         """
-        for snipclass in ('system', 'profile', 'distro'):
-            if self.varExists('%s_name' % snipclass):
-                fullpath = '%s/per_%s/%s/%s' % (self.getVar('autoinstall_snippets_dir'),
-                                                snipclass, file,
-                                                self.getVar('%s_name' % snipclass))
+        for snippet_class in ('system', 'profile', 'distro'):
+            if self.varExists('%s_name' % snippet_class):
+                full_path = '%s/per_%s/%s/%s' % (self.getVar('autoinstall_snippets_dir'), snippet_class, file,
+                                                 self.getVar('%s_name' % snippet_class))
                 try:
-                    contents = utils.read_file_contents(fullpath, fetch_if_remote=True)
+                    contents = utils.read_file_contents(full_path, fetch_if_remote=True)
                     return contents
                 except FileNotFoundException:
                     pass
 
         try:
-            return "#errorCatcher ListErrors\n" + utils.read_file_contents('%s/%s' % (self.getVar('autoinstall_snippets_dir'), file), fetch_if_remote=True)
+            full_path = '%s/%s' % (self.getVar('autoinstall_snippets_dir'), file)
+            return "#errorCatcher ListErrors\n" + utils.read_file_contents(full_path, fetch_if_remote=True)
         except FileNotFoundException:
             return None
 
@@ -208,4 +210,5 @@ class CobblerTemplate(cheetah_template.Template):
                 return '\\' + c
             else:
                 return c
+
         return ''.join([escchar(c) for c in value])
