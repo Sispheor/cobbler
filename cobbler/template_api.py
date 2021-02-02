@@ -21,9 +21,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from typing import Optional
+from typing import Optional, TextIO, Tuple, Union, Match
 
-import Cheetah.Template as cheetah_template
+from Cheetah.Template import Template
 import os.path
 import re
 
@@ -35,7 +35,7 @@ from cobbler import utils
 # a Python class. This class will allow us to define the cheetah builtins.
 
 
-class CobblerTemplate(cheetah_template.Template):
+class CobblerTemplate(Template):
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include both types (cheetah and pure python) of
@@ -86,7 +86,7 @@ class CobblerTemplate(cheetah_template.Template):
     # in the base class above) will be accessible to all cheetah templates compiled by Cobbler.
 
     @classmethod
-    def compile(cls, *args, **kwargs):
+    def compile(cls, *args, **kwargs) -> bytes:
         """
         Compile a cheetah template with Cobbler modifications. Modifications include ``SNIPPET::`` syntax replacement
         and inclusion of Cobbler builtin methods. Please be aware that you cannot use the ``baseclass`` attribute of
@@ -95,13 +95,12 @@ class CobblerTemplate(cheetah_template.Template):
         :param args: These just get passed right to Cheetah.
         :param kwargs: We just execute our own preprocessors and remove them and let afterwards handle Cheetah the rest.
         :return: The compiled template.
-        :rtype: bytes
         """
 
-        def replacer(match):
+        def replacer(match: Match):
             return "$SNIPPET('%s')" % match.group(1)
 
-        def preprocess(source, file):
+        def preprocess(source: Optional[str], file: Union[TextIO, str]) -> Tuple[str, Union[TextIO, str]]:
             # Normally, the cheetah compiler worries about this, but we need to preprocess the actual source.
             if source is None:
                 if hasattr(file, 'read'):
@@ -114,7 +113,7 @@ class CobblerTemplate(cheetah_template.Template):
                         source = "# Unable to read %s\n" % file
                 file = None  # Stop Cheetah from throwing a fit.
 
-            rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-\/\.]+)')
+            rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-/.]+)')
             results = rx.sub(replacer, source)
             return results, file
 
@@ -141,6 +140,9 @@ class CobblerTemplate(cheetah_template.Template):
         :param file: The name of the file to read. Depending on the context this gets expanded automatically.
         :return: None (if the snippet file was not found) or the string with the read snippet.
         """
+        if not self.varExists('autoinstall_snippets_dir'):
+            raise AttributeError("\"autoinstall_snippets_dir\" is required to find Snippets")
+
         for snippet_class in ('system', 'profile', 'distro'):
             if self.varExists('%s_name' % snippet_class):
                 full_path = '%s/per_%s/%s/%s' % (self.getVar('autoinstall_snippets_dir'), snippet_class, file,
@@ -157,7 +159,7 @@ class CobblerTemplate(cheetah_template.Template):
         except FileNotFoundException:
             return None
 
-    def SNIPPET(self, file):
+    def SNIPPET(self, file: str):
         """
         Include the contents of the named snippet here. This is equivalent to the #include directive in Cheetah, except
         that it searches for system and profile specific snippets, and it includes the snippet's namespace.
@@ -197,7 +199,7 @@ class CobblerTemplate(cheetah_template.Template):
     #
     # sed 's/$sedesc("/etc/banner")/$sedesc($new_banner)/'
     #
-    def sedesc(self, value):
+    def sedesc(self, value: str):
         """
         Escape a string for use in sed.
 
@@ -205,10 +207,10 @@ class CobblerTemplate(cheetah_template.Template):
         :return: The escaped phrase.
         """
 
-        def escchar(c):
-            if c in '/^.[]$()|*+?{}\\':
-                return '\\' + c
+        def escchar(character: str) -> str:
+            if character in '/^.[]$()|*+?{}\\':
+                return '\\' + character
             else:
-                return c
+                return character
 
         return ''.join([escchar(c) for c in value])

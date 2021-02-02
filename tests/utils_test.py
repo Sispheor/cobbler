@@ -94,8 +94,9 @@ def test_find_matching_files():
     # Arrange
     # TODO: Get testdir und check for files
     directory = "/test_dir/tests"
-    expected = ["/test_dir/tests/settings_test.py", "/test_dir/tests/module_loader_test.py",
-                "/test_dir/tests/utils_test.py"]
+    expected = ["/test_dir/tests/settings_test.py", "/test_dir/tests/utils_test.py",
+                "/test_dir/tests/template_api_test.py", "/test_dir/tests/templar_test.py",
+                "/test_dir/tests/module_loader_test.py"]
 
     # Act
     results = utils.find_matching_files(directory, re.compile(r'.*_test.py'))
