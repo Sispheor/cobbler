@@ -22,18 +22,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import re
-from typing import Optional, Union
-from typing.io import TextIO
-
-import Cheetah
 import functools
 import os
 import os.path
 import pprint
+import re
+from typing import Optional, Union
 
-from cobbler.cexceptions import CX
+import Cheetah
+from typing.io import TextIO
+
 from cobbler import clogger, utils
+from cobbler.cexceptions import CX
 from cobbler.cobbler_collections.manager import CollectionManager
 from cobbler.template_api import CobblerTemplate
 

@@ -21,14 +21,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+import os.path
+import re
 from typing import Optional, TextIO, Tuple, Union, Match
 
 from Cheetah.Template import Template
-import os.path
-import re
 
-from cobbler.cexceptions import FileNotFoundException
 from cobbler import utils
+from cobbler.cexceptions import FileNotFoundException
 
 
 # This class is defined using the Cheetah language. Using the 'compile' function we can compile the source directly into
