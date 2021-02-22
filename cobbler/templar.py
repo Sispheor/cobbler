@@ -27,7 +27,6 @@ from typing import Optional, Union
 from typing.io import TextIO
 
 import Cheetah
-import Cheetah.Template as cheetah_template
 import functools
 import os
 import os.path
@@ -46,9 +45,6 @@ except ModuleNotFoundError:
     # FIXME: log a message here
     jinja2_available = False
     pass
-
-major, minor, release = Cheetah.Version.split('.')[0:3]
-fix_cheetah_class = (int(major), int(minor), int(release)) >= (2, 4, 2)
 
 CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
@@ -212,13 +208,21 @@ class Templar:
         })
 
         # Now do full templating scan, where we will also templatify the snippet insertions
-        template = cheetah_template.Template().compile(
+        with open(CHEETAH_MACROS_FILE, "r") as macro_file:
+            cheetah_macros_content = macro_file.read()
+        cheetah_macros = CobblerTemplate.compile(
+            source=cheetah_macros_content,
+            moduleName="cobbler.template_api",
+            className="CheetahMacros")
+        template = CobblerTemplate().compile(
             source=raw_data,
             compilerSettings={'useStackFrame': False},
-            baseclass=CobblerTemplate.compile(file=CHEETAH_MACROS_FILE)
+            baseclass=cheetah_macros
         )
 
-        if fix_cheetah_class:
+        major, minor, release = Cheetah.Version.split('.')[0:3]
+
+        if (int(major), int(minor), int(release)) >= (2, 4, 2):
             template.SNIPPET = functools.partial(template.SNIPPET, template)
             template.read_snippet = functools.partial(template.read_snippet, template)
 

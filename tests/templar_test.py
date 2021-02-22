@@ -9,16 +9,16 @@ from cobbler.templar import Templar
 @pytest.fixture(scope="function")
 def setup_cheetah_macros_file():
     with open("/etc/cobbler/cheetah_macros", "w") as f:
-        f.writelines(["## define Cheetah functions here and reuse them throughout your templates",
-                      "",
-                      "def $myMethodInMacros($a)",
-                      "Text in method: $a",
-                      "#end def"])
+        f.writelines(["## define Cheetah functions here and reuse them throughout your templates\n",
+                      "\n",
+                      "#def $myMethodInMacros($a)\n",
+                      "Text in method: $a\n",
+                      "#end def\n"])
     yield
     with open("/etc/cobbler/cheetah_macros", "w") as f:
-        f.writelines(["## define Cheetah functions here and reuse them throughout your templates",
-                      "",
-                      ""])
+        f.writelines(["## define Cheetah functions here and reuse them throughout your templates\n",
+                      "\n",
+                      "\n"])
 
 
 def test_check_for_invalid_imports():
@@ -59,18 +59,18 @@ def test_render_cheetah():
     assert result == '5'
 
 
-    @pytest.mark.usefixtures("setup_cheetah_macros_file")
-    def test_cheetah_macros(self):
-        # Arrange
-        # TODO: Write Cleanup fixture which resets the Cheetah Macros and sets them up
+@pytest.mark.usefixtures("setup_cheetah_macros_file")
+def test_cheetah_macros():
+    # Arrange
+    test_api = CobblerAPI()
+    test_collection_mgr = CollectionManager(test_api)
+    templar = Templar(test_collection_mgr)
 
-        # Act
-        compiled_template = CobblerTemplate(searchList=[{"autoinstall_snippets_dir": "/var/lib/cobbler/snippets"}]) \
-            .compile(source="$myMethodInMacros(5)")
-        result = str(compiled_template())
+    # Act
+    result = templar.render_cheetah("$myMethodInMacros(5)", {})
 
-        # Assert
-        assert result == "Text in method: 5"
+    # Assert
+    assert result == "Text in method: 5\n"
 
 
 def test_render_jinja2():

@@ -102,7 +102,7 @@ def test_find_matching_files():
     results = utils.find_matching_files(directory, re.compile(r'.*_test.py'))
 
     # Assert
-    assert expected == results
+    assert expected.sort() == results.sort()
 
 
 def test_find_highest_files():

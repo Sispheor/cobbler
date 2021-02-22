@@ -498,7 +498,7 @@ class Collection(object):
                     if x.name != ref.name:
                         raise CX("Can't save system %s.  The dns name (%s) is already used by system %s (%s)" % (ref.name, intf["dns_name"], x.name, name))
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Creates a printable representation of the collection suitable for reading by humans or parsing from scripts.
         Actually scripts would be better off reading the JSON in the cobbler_collections files directly.
@@ -521,13 +521,11 @@ class Collection(object):
         """
         Returns the string key for the name of the collection (used by serializer etc)
         """
-        return NotImplementedException()
+        raise NotImplementedException("Please implement the method \"collection_type\" in your Collection!")
 
     @staticmethod
     def collection_types() -> str:
         """
         Returns the string key for the plural name of the collection (used by serializer)
         """
-        return NotImplementedException()
-
-# EOF
+        raise NotImplementedException("Please implement the method \"collection_types\" in your Collection!")

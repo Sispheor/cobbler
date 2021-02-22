@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import time
 import weakref
 import uuid
+from typing import Union, Dict, Any
 
 from cobbler.api import CobblerAPI
 from cobbler.cexceptions import CX
@@ -43,14 +43,17 @@ from cobbler.settings import Settings
 
 
 class CollectionManager:
+    """
+    Manages a definitive copy of all data cobbler_collections with weakrefs pointing back into the class so they can
+    understand each other's contents.
+    """
 
     has_loaded = False
-    __shared_state = {}
+    __shared_state: Dict[str, Any] = {}
 
     def __init__(self, api: CobblerAPI):
         """
-        Constructor. Manages a definitive copy of all data cobbler_collections with weakrefs
-        pointing back into the class so they can understand each other's contents
+        Constructor which loads all content if this action was not performed before.
         """
         self.__dict__ = CollectionManager.__shared_state
         if not CollectionManager.has_loaded:
@@ -75,7 +78,8 @@ class CollectionManager:
         self._mgmtclasses = Mgmtclasses(weakref.proxy(self))
         self._packages = Packages(weakref.proxy(self))
         self._files = Files(weakref.proxy(self))
-        self._settings = settings.Settings()         # not a true collection
+        # Not a true collection
+        self._settings = settings.Settings()
 
     def generate_uid(self):
         """
@@ -154,6 +158,7 @@ class CollectionManager:
         serializer.serialize(self._packages)
         serializer.serialize(self._files)
 
+    # pylint: disable=R0201
     def serialize_item(self, collection: Collection, item: Item):
         """
         Save a collection item to disk
@@ -164,6 +169,7 @@ class CollectionManager:
 
         return serializer.serialize_item(collection, item)
 
+    # pylint: disable=R0201
     def serialize_delete(self, collection: Collection, item: Item):
         """
         Delete a collection item from disk
@@ -195,9 +201,11 @@ class CollectionManager:
             try:
                 serializer.deserialize(collection)
             except Exception as e:
-                raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf" % (collection.collection_type(), e))
+                raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf"
+                         % (collection.collection_type(), e))
 
-    def get_items(self, collection_type: str):
+    def get_items(self, collection_type: str) -> Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages,
+                                                       Files, Settings]:
         """
         Get a full collection of a single type.
 
@@ -208,6 +216,7 @@ class CollectionManager:
         :return: The collection if ``collection_type`` is valid.
         :raises CX: If the ``collection_type`` is invalid.
         """
+        result: Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages, Files, Settings]
         if collection_type == "distro":
             result = self._distros
         elif collection_type == "profile":

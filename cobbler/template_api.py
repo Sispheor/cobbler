@@ -48,27 +48,20 @@ class CobblerTemplate(Template):
 
         :param kwargs: These arguments get passed to the super constructor of this class.
         """
+        # This part (see 'Template' below for the other part) handles the actual inclusion of the file contents. We
+        # still need to make the snippet's namespace (searchList) available to the template calling SNIPPET (done in
+        # the other part).
+
+        # This function can be used in two ways:
+        # Cheetah syntax:
+        # - $SNIPPET('my_snippet')
+        # - SNIPPET syntax:
+        # - SNIPPET::my_snippet
+
+        # This follows all of the rules of snippets and advanced snippets. First it searches for a per-system snippet,
+        # then a per-profile snippet, then a general snippet. If none is found, a comment explaining the error is
+        # substituted.
         self.BuiltinTemplate = CobblerTemplate.compile(source="\n".join([
-            # This part (see 'Template' below for the other part) handles the actual inclusion of the file contents. We
-            # still need to make the snippet's namespace (searchList) available to the template calling SNIPPET (done in
-            # the other part).
-
-            # Moved the other functions into /etc/cobbler/cheetah_macros
-            # Left SNIPPET here since it is very important.
-
-            # This function can be used in two ways:
-            # Cheetah syntax:
-            #
-            # $SNIPPET('my_snippet')
-            #
-            # SNIPPET syntax:
-            #
-            # SNIPPET::my_snippet
-            #
-            # This follows all of the rules of snippets and advanced snippets. First it
-            # searches for a per-system snippet, then a per-profile snippet, then a
-            # general snippet. If none is found, a comment explaining the error is
-            # substituted.
             "#def SNIPPET($file)",
             "#set $snippet = $read_snippet($file)",
             "#if $snippet",
@@ -111,10 +104,11 @@ class CobblerTemplate(Template):
                             source = "#errorCatcher Echo\n" + f.read()
                     else:
                         source = "# Unable to read %s\n" % file
-                file = None  # Stop Cheetah from throwing a fit.
+                # Stop Cheetah from throwing a fit.
+                file = None
 
-            rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-/.]+)')
-            results = rx.sub(replacer, source)
+            snippet_regex = re.compile(r'SNIPPET::([A-Za-z0-9_\-/.]+)')
+            results = snippet_regex.sub(replacer, source)
             return results, file
 
         preprocessors = [preprocess]
@@ -193,15 +187,18 @@ class CobblerTemplate(Template):
 
         return result
 
-    # This function is used by several cheetah methods in cheetah_macros. It can be used by the end user as well.
-    # Ex: Replace all instances of '/etc/banner' with a value stored in
-    # $new_banner
-    #
-    # sed 's/$sedesc("/etc/banner")/$sedesc($new_banner)/'
-    #
-    def sedesc(self, value: str):
+    # pylint: disable=R0201
+    def sedesc(self, value: str) -> str:
         """
         Escape a string for use in sed.
+
+        This function is used by several cheetah methods in cheetah_macros. It can be used by the end user as well.
+
+        Example: Replace all instances of ``/etc/banner`` with a value stored in ``$new_banner``
+
+        ..code::
+
+           sed 's/$sedesc("/etc/banner")/$sedesc($new_banner)/'
 
         :param value: The phrase to escape.
         :return: The escaped phrase.
@@ -210,7 +207,6 @@ class CobblerTemplate(Template):
         def escchar(character: str) -> str:
             if character in '/^.[]$()|*+?{}\\':
                 return '\\' + character
-            else:
-                return character
+            return character
 
         return ''.join([escchar(c) for c in value])
