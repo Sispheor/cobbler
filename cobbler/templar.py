@@ -27,10 +27,9 @@ import os
 import os.path
 import pprint
 import re
-from typing import Optional, Union
+from typing import Optional, Union, TextIO
 
 import Cheetah
-from typing.io import TextIO
 
 from cobbler import clogger, utils
 from cobbler.cexceptions import CX
