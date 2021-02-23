@@ -51,7 +51,7 @@ class CollectionManager:
     has_loaded = False
     __shared_state: Dict[str, Any] = {}
 
-    def __init__(self, api: CobblerAPI):
+    def __init__(self, api):
         """
         Constructor which loads all content if this action was not performed before.
         """
