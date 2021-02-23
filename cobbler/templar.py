@@ -88,7 +88,7 @@ class Templar:
                 if self.settings and rest not in self.settings.cheetah_import_whitelist:
                     raise CX("potentially insecure import in template: %s" % rest)
 
-    def render(self, data_input: Union[TextIO, str], search_table: dict, out_path: Optional[str], subject=None,
+    def render(self, data_input: Union[TextIO, str], search_table: dict, out_path: Optional[str],
                template_type="default") -> str:
         """
         Render data_input back into a file.
@@ -96,7 +96,6 @@ class Templar:
         :param data_input: is either a str or a TextIO object.
         :param search_table: is a dict of metadata keys and values.
         :param out_path: Optional parameter which (if present), represents the target path to write the result into.
-        :param subject: Unused and will be removed in one of the next versions.
         :param template_type: May currently be "cheetah" or "jinja2". "default" looks in the settings.
         :return: The rendered template.
         """
