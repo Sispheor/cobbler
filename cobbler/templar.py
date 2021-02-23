@@ -109,7 +109,7 @@ class Templar:
         lines = raw_data.split('\n')
 
         if template_type not in ("default", "jinja2", "cheetah"):
-            return "# ERROR: Unsupported Template Type selected!"
+            return "# ERROR: Unsupported template type selected!"
 
         if template_type == "default":
             if self.settings and self.settings.default_template_type:
