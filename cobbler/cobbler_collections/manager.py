@@ -202,7 +202,7 @@ class CollectionManager:
                 serializer.deserialize(collection)
             except Exception as e:
                 raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf"
-                         % (collection.collection_type(), e))
+                         % (collection.collection_type(), e)) from e
 
     def get_items(self, collection_type: str) -> Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages,
                                                        Files, Settings]:
