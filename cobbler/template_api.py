@@ -71,7 +71,7 @@ class CobblerTemplate(Template):
             "#end if",
             "#end def",
         ]) + "\n")
-        super(CobblerTemplate, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to compile the template into a class. This
     # is probably a kludge, but it add a baseclass argument to the standard compile (see Cheetah's compile docstring)
