@@ -54,7 +54,7 @@ class Templar:
     via our self-defined API in this class.
     """
 
-    def __init__(self, collection_mgr: CollectionManager, logger: Optional[clogger.Logger] = None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
 
@@ -161,7 +161,7 @@ class Templar:
 
         return data_out
 
-    def render_cheetah(self, raw_data, search_table: dict):
+    def render_cheetah(self, raw_data, search_table: dict) -> str:
         """
         Render data_input back into a file.
 
@@ -237,7 +237,7 @@ class Templar:
 
         return data_out
 
-    def render_jinja2(self, raw_data: str, search_table: dict):
+    def render_jinja2(self, raw_data: str, search_table: dict) -> str:
         """
         Render data_input back into a file.
 

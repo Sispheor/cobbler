@@ -70,8 +70,8 @@ class BindManager(object):
         self.settings = collection_mgr.settings()
         self.repos = collection_mgr.repos()
         self.templar = templar.Templar(collection_mgr)
-        self.settings_file = utils.namedconf_location(self.api)
-        self.zonefile_base = utils.zonefile_base(self.api)
+        self.settings_file = utils.namedconf_location()
+        self.zonefile_base = utils.zonefile_base()
 
     def regen_hosts(self):
         """

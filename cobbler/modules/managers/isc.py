@@ -65,7 +65,7 @@ class IscManager(object):
         self.settings = collection_mgr.settings()
         self.repos = collection_mgr.repos()
         self.templar = templar.Templar(collection_mgr)
-        self.settings_file = utils.dhcpconf_location(self.api)
+        self.settings_file = utils.dhcpconf_location()
 
     def write_dhcp_file(self):
         """
@@ -240,7 +240,7 @@ class IscManager(object):
         """
         This syncs the dhcp server with it's new config files. Basically this restarts the service to apply the changes.
         """
-        service_name = utils.dhcp_service_name(self.api)
+        service_name = utils.dhcp_service_name()
         if self.settings.restart_dhcp:
             rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
             if rc != 0:

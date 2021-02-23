@@ -1113,7 +1113,7 @@ def test_dhcpconf_location():
     # Arrange
 
     # Act
-    result = utils.dhcpconf_location(None)
+    result = utils.dhcpconf_location()
 
     # Assert
     assert result == "/etc/dhcpd.conf"
@@ -1123,7 +1123,7 @@ def test_namedconf_location():
     # Arrange
 
     # Act
-    result = utils.namedconf_location(None)
+    result = utils.namedconf_location()
 
     # Assert
     assert result == "/etc/named.conf"
@@ -1133,7 +1133,7 @@ def test_zonefile_base():
     # Arrange
 
     # Act
-    result = utils.zonefile_base(None)
+    result = utils.zonefile_base()
 
     # Assert
     assert result == "/var/lib/named/"
@@ -1143,7 +1143,7 @@ def test_dhcp_service_name():
     # Arrange
 
     # Act
-    result = utils.dhcp_service_name(None)
+    result = utils.dhcp_service_name()
 
     # Assert
     assert result == "dhcpd"
@@ -1153,7 +1153,7 @@ def test_named_service_name():
     # Arrange
 
     # Act
-    result = utils.named_service_name(None)
+    result = utils.named_service_name()
 
     # Assert
     assert result == "named"

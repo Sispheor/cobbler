@@ -18,9 +18,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import range
-from builtins import object
 import base64
 import errno
 import fcntl
@@ -111,7 +108,7 @@ class CobblerThread(Thread):
 # *********************************************************************
 
 
-class CobblerXMLRPCInterface(object):
+class CobblerXMLRPCInterface:
     """
     This is the interface used for all XMLRPC methods, for instance, as used by koan or CobblerWeb.
 
@@ -182,14 +179,13 @@ class CobblerXMLRPCInterface(object):
                 self.remote._new_event(msg)
         return self.__start_task(runner, token, "buildiso", "Build Iso", options, on_done)
 
-    def background_aclsetup(self, options, token):
+    def background_aclsetup(self, options, token) -> str:
         """
         Get the acl configuration from the config and set the acls in the backgroud.
 
         :param options: Not known what this parameter does.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
-        :rtype: str
         """
         def runner(self):
             self.remote.api.acl_config(
@@ -201,66 +197,61 @@ class CobblerXMLRPCInterface(object):
             )
         return self.__start_task(runner, token, "aclsetup", "(CLI) ACL Configuration", options)
 
-    def background_dlcontent(self, options, token):
+    def background_dlcontent(self, options, token) -> str:
         """
         Download bootloaders and other support files.
 
         :param options: Unknown what this parameter is doing at the moment.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
-        :rtype: str
         """
         def runner(self):
             self.remote.api.dlcontent(self.options.get("force", False), self.logger)
         return self.__start_task(runner, token, "get_loaders", "Download Bootloader Content", options)
 
-    def background_sync(self, options, token):
+    def background_sync(self, options, token) -> str:
         """
         Run a full Cobbler sync in the background.
 
         :param options: Not known what this parameter does.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
-        :rtype: str
         """
         def runner(self):
             self.remote.api.sync(self.options.get("verbose", False), logger=self.logger)
         return self.__start_task(runner, token, "sync", "Sync", options)
 
-    def background_hardlink(self, options, token):
+    def background_hardlink(self, options, token) -> str:
         """
         Hardlink all files as a background task.
 
         :param options: Not known what this parameter does.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
-        :rtype: str
         """
         def runner(self):
             self.remote.api.hardlink(logger=self.logger)
         return self.__start_task(runner, token, "hardlink", "Hardlink", options)
 
-    def background_validate_autoinstall_files(self, options, token):
+    def background_validate_autoinstall_files(self, options, token) -> str:
         """
         Validate all autoinstall files in the background.
 
         :param options: Not known what this parameter does.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
-        :rtype: str
         """
         def runner(self):
             return self.remote.api.validate_autoinstall_files(logger=self.logger)
         return self.__start_task(runner, token, "validate_autoinstall_files", "Automated installation files validation", options)
 
-    def background_replicate(self, options, token):
+    def background_replicate(self, options, token) -> str:
         """
         Replicate Cobbler in the background to another Cobbler instance.
 
         :param options: Not known what this parameter does.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
-        :rtype: str
         """
         def runner(self):
             # FIXME: defaults from settings here should come from views, fix in views.py
@@ -283,14 +274,13 @@ class CobblerXMLRPCInterface(object):
             )
         return self.__start_task(runner, token, "replicate", "Replicate", options)
 
-    def background_import(self, options, token):
+    def background_import(self, options, token) -> str:
         """
         Import an ISO image in the background.
 
         :param options: Not known what this parameter does.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
-        :rtype: str
         """
         def runner(self):
             self.remote.api.import_tree(
