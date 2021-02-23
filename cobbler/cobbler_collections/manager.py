@@ -59,7 +59,7 @@ class CollectionManager:
         if not CollectionManager.has_loaded:
             self.__load(api)
 
-    def __load(self, api: CobblerAPI):
+    def __load(self, api):
         """
         Load all collections from the disk into Cobbler.
 
